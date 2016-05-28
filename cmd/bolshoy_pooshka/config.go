@@ -16,6 +16,7 @@ type Stage struct {
 	*/
 	RunOnce []Request // executed one by one
 	Repeat  []Request // executed in parallel according to their probability
+	Pause   bool      // Do not step to next stage automatically
 }
 
 type Request struct {
