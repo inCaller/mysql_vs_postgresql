@@ -28,7 +28,7 @@ func main() {
 	log.Infof("YAML: %v", string(test))
 	http.Handle("/metrics", prometheus.Handler())
 
-	err = http.ListenAndServe(fmt.Sprintf("%s:%d", "0.0.0.0", "8084"), nil)
+	err = http.ListenAndServe(fmt.Sprintf("%s:%d", "0.0.0.0", 8084), nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
