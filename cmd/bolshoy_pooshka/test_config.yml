@@ -1,0 +1,31 @@
+stages:
+- stage: initialStageSubstage1
+  rps: 100
+  concurrency: 10
+  duration: 20s
+  runonce:
+  - request: simpleSelect
+    query: SELECT 1 FROM DUAL
+    update: false
+    probability: 1
+  repeat: []
+  pause: false
+- stage: initialStageSubstage2
+  rps: 300
+  concurrency: 10
+  duration: 1m0s
+  runonce:
+  - request: simpleSelect
+    query: SELECT 1 FROM DUAL
+    update: false
+    probability: 1
+  repeat:
+  - request: simpleSelect
+    query: SELECT 1 FROM DUAL
+    update: false
+    probability: 1
+  - request: simpleInsert
+    query: INSERT INTO table1('name', 'value') VALUES(%rand1, %rand2)
+    update: true
+    probability: 0.9
+  pause: false
