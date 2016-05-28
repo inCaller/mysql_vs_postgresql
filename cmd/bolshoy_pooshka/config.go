@@ -16,10 +16,11 @@ type Stage struct {
 	*/
 	RunOnce []Request // executed one by one
 	Repeat  []Request // executed in parallel according to their probability
-	Pause   bool      // Do not step to next stage automatically
+	Pause   bool      // Do not step to the next stage automatically
 }
 
 type Request struct {
+	Name        string  // used as a part of metric name
 	Query       string  // SQL itself
 	Probability float32 // 0 - never, 1 - each time, ignored for RunOnce
 }
