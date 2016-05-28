@@ -7,7 +7,7 @@ type Config struct {
 }
 
 type Stage struct {
-	Name     string
+	Name     string        // used as a part of metric name
 	RPS      float32       // 0 - infinity
 	Duration time.Duration /*
 		0 - end as soon as all the RunOnce queries done
