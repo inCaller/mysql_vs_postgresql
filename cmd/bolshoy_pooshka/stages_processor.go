@@ -10,16 +10,18 @@ func processStages() {
 	for i, stage := range globalConfig.Stages {
 		log.Printf("Started processing stage #%d, %s", i, stage.StageName)
 		processRunOnceQueries(&stage)
-		var wg sync.WaitGroup
-		if stage.Concurrency == 0 {
-			stage.Concurrency = 1
+		if stage.Duration != 0 {
+			var wg sync.WaitGroup
+			if stage.Concurrency == 0 {
+				stage.Concurrency = 1
+			}
+			log.Printf("Concurrency: %d", stage.Concurrency)
+			wg.Add(stage.Concurrency)
+			for ri := 0; ri < stage.Concurrency; ri++ {
+				go worker(&wg, &stage)
+			}
+			wg.Wait()
 		}
-		log.Printf("Concurrency: %d", stage.Concurrency)
-		wg.Add(stage.Concurrency)
-		for ri := 0; ri < stage.Concurrency; ri++ {
-			go worker(&wg, &stage)
-		}
-		wg.Wait()
 		log.Printf("Stage finished!")
 	}
 }
