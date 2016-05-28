@@ -1,15 +1,29 @@
 package main
 
 import (
-	log "github.com/Sirupsen/logrus"
+	"bytes"
+	"math/rand"
 	"sync"
 	"time"
+
+	log "github.com/Sirupsen/logrus"
 )
 
 func processStages() {
 	for i, stage := range globalConfig.Stages {
 		log.Printf("Started processing stage #%d, %s", i, stage.StageName)
-		processRunOnceQueries(&stage)
+		data := &QueryData{}
+		processRunOnceQueries(&stage, data.Init())
+
+		totalProb := float32(0)
+		for _, query := range stage.Repeat {
+			totalProb += query.Probability
+			query.Probability = totalProb
+		}
+		for _, query := range stage.Repeat {
+			query.Probability = query.Probability / totalProb
+		}
+
 		if stage.Duration != 0 {
 			var wg sync.WaitGroup
 			if stage.Concurrency == 0 {
@@ -26,9 +40,15 @@ func processStages() {
 	}
 }
 
-func processRunOnceQueries(stage *Stage) {
+func processRunOnceQueries(stage *Stage, data interface{}) {
+	var buf bytes.Buffer
 	for i, query := range stage.RunOnce {
-		log.Printf("Executing a run-once query #%d: %s", i, query.SQL)
+		buf.Reset()
+		err := query.SQL.Execute(&buf, data)
+		if err != nil {
+			panic(err)
+		}
+		log.Printf("Executing a run-once query #%d: %s", i, buf.String())
 	}
 }
 
@@ -40,7 +60,8 @@ func worker(wg *sync.WaitGroup, stage *Stage) {
 		stopFlag = 1 // No locking because this operation should be practically atomic enough
 	}()
 	for {
-		runSingleRepeatableQuery(stage)
+		data := &QueryData{}
+		runSingleRepeatableQuery(stage, data.Init())
 		if stopFlag != 0 {
 			break
 		}
@@ -48,6 +69,20 @@ func worker(wg *sync.WaitGroup, stage *Stage) {
 	wg.Done()
 }
 
-func runSingleRepeatableQuery(stage *Stage) {
+func runSingleRepeatableQuery(stage *Stage, data interface{}) {
+	probability := rand.Float32()
+	var buf bytes.Buffer
+
+	for i, query := range stage.Repeat {
+		log.Printf("Examining a repeatable query #%d: %f %f %s", i, probability, query.Probability, query.SQL.Name())
+		if query.Probability > probability {
+			err := query.SQL.Execute(&buf, data)
+			if err != nil {
+				panic(err)
+			}
+			log.Printf("Executing a repeatable query #%d: %s", i, buf.String())
+			return
+		}
+	}
 	time.Sleep(100 * time.Millisecond)
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math/rand"
 	"text/template"
 	"time"
 )
@@ -18,21 +19,24 @@ type Stage struct {
 		duration - obvious
 		set a huge duration to run until interrupted
 	*/
-	RunOnce []Query // executed one by one
-	Repeat  []Query // executed in parallel according to their probability
-	Pause   bool    // Do not step to the next stage automatically
+	RunOnce []*Query // executed one by one
+	Repeat  []*Query // executed in parallel according to their probability
+	Pause   bool     // Do not step to the next stage automatically
+
 }
 
 type Query struct {
-	QueryName   string   `yaml:"query"` // used as a part of metric name
-	SQL         Template // SQL itself
-	Update      bool     // This query is DB update
-	Probability float32  // 0 - never, 1 - each time, ignored for RunOnce
+	QueryName   string    `yaml:"query"` // used as a part of metric name
+	SQL         *Template // SQL itself
+	Update      bool      // This query is DB update
+	Probability float32   // 0 - never, 1 - each time, ignored for RunOnce
 }
 
 var globalConfig Config
 
-type Template template.Template
+type Template struct {
+	*template.Template
+}
 
 func (t *Template) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	var strVal string
@@ -47,6 +51,17 @@ func (t *Template) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		return err
 	}
 
-	*t = Template(*newT)
+	*t = Template{newT}
 	return nil
+}
+
+type QueryData struct {
+	Rand1 int64
+	Rand2 int64
+}
+
+func (d *QueryData) Init() *QueryData {
+	d.Rand1 = rand.Int63()
+	d.Rand2 = rand.Int63()
+	return d
 }
