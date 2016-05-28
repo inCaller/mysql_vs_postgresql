@@ -17,7 +17,7 @@ func TestScenarioNumberOne(t *testing.T) {
 				Duration:  time.Second * 20,
 				RunOnce: []Request{
 					Request{
-						Name:        "WhoKnows",
+						RequestName: "WhoKnows",
 						Query:       "SELECT 1 FROM DUAL",
 						Probability: 0,
 					},
@@ -29,19 +29,19 @@ func TestScenarioNumberOne(t *testing.T) {
 				Duration:  time.Second * 60,
 				RunOnce: []Request{
 					Request{
-						Name:        "WhoKnows",
+						RequestName: "WhoKnows",
 						Query:       "SELECT 1 FROM DUAL",
 						Probability: 0,
 					},
 				},
 				Repeat: []Request{
 					Request{
-						Name:        "doSomethingUseful",
+						RequestName: "doSomethingUseful",
 						Query:       "SELECT 1 FROM DUAL",
 						Probability: 10000,
 					},
 					Request{
-						Name:        "doSomethingHarmful",
+						RequestName: "doSomethingHarmful",
 						Query:       "DELETE FROM table1",
 						Probability: 1,
 					},
