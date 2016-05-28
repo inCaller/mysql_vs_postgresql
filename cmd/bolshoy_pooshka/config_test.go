@@ -16,10 +16,10 @@ func TestCreateScenarioNumberOne(t *testing.T) {
 				StageName: "doSomething",
 				RPS:       100,
 				Duration:  time.Second * 20,
-				RunOnce: []Request{
-					Request{
-						RequestName: "WhoKnows",
-						Query:       "SELECT 1 FROM DUAL",
+				RunOnce: []Query{
+					Query{
+						QueryName:   "WhoKnows",
+						SQL:         "SELECT 1 FROM DUAL",
 						Probability: 0,
 					},
 				},
@@ -28,22 +28,22 @@ func TestCreateScenarioNumberOne(t *testing.T) {
 				StageName: "doSomethingElse",
 				RPS:       300,
 				Duration:  time.Second * 60,
-				RunOnce: []Request{
-					Request{
-						RequestName: "WhoKnows",
-						Query:       "SELECT 1 FROM DUAL",
+				RunOnce: []Query{
+					Query{
+						QueryName:   "WhoKnows",
+						SQL:         "SELECT 1 FROM DUAL",
 						Probability: 0,
 					},
 				},
-				Repeat: []Request{
-					Request{
-						RequestName: "doSomethingUseful",
-						Query:       "SELECT 1 FROM DUAL",
+				Repeat: []Query{
+					Query{
+						QueryName:   "doSomethingUseful",
+						SQL:         "SELECT 1 FROM DUAL",
 						Probability: 10000,
 					},
-					Request{
-						RequestName: "doSomethingHarmful",
-						Query:       "DELETE FROM table1",
+					Query{
+						QueryName:   "doSomethingHarmful",
+						SQL:         "DELETE FROM table1",
 						Probability: 1,
 					},
 				},

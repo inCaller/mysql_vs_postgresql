@@ -15,14 +15,14 @@ type Stage struct {
 		duration - obvious
 		set a huge duration to run until interrupted
 	*/
-	RunOnce []Request // executed one by one
-	Repeat  []Request // executed in parallel according to their probability
-	Pause   bool      // Do not step to the next stage automatically
+	RunOnce []Query // executed one by one
+	Repeat  []Query // executed in parallel according to their probability
+	Pause   bool    // Do not step to the next stage automatically
 }
 
-type Request struct {
-	RequestName string  `yaml:"request"` // used as a part of metric name
-	Query       string  // SQL itself
+type Query struct {
+	QueryName   string  `yaml:"query"` // used as a part of metric name
+	SQL         string  // SQL itself
 	Update      bool    // This query is DB update
 	Probability float32 // 0 - never, 1 - each time, ignored for RunOnce
 }
