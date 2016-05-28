@@ -31,6 +31,21 @@ func processRunOnceQueries(stage *Stage) {
 }
 
 func worker(wg *sync.WaitGroup, stage *Stage) {
-	time.Sleep(stage.Duration)
+	stopFlag := 0
+	go func() {
+		time.Sleep(stage.Duration)
+		log.Printf("Setting the stopflag")
+		stopFlag = 1 // No locking because this operation should be practically atomic enough
+	}()
+	for {
+		runSingleRepeatableQuery(stage)
+		if stopFlag != 0 {
+			break
+		}
+	}
 	wg.Done()
+}
+
+func runSingleRepeatableQuery(stage *Stage) {
+	time.Sleep(100 * time.Millisecond)
 }
