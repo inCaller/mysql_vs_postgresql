@@ -26,3 +26,5 @@ type Request struct {
 	Update      bool    // This query is DB update
 	Probability float32 // 0 - never, 1 - each time, ignored for RunOnce
 }
+
+var globalConfig Config
