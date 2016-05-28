@@ -8,6 +8,10 @@ stages:
     sql: SELECT 1 FROM DUAL
     update: false
     probability: 1
+  - query: simpleSelect2
+    sql: SELECT 1 FROM DUAL
+    update: false
+    probability: 1
   repeat: []
   pause: false
 - stage: initialStageSubstage2
