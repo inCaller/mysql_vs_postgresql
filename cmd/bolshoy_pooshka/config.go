@@ -1,6 +1,9 @@
 package main
 
-import "time"
+import (
+	"text/template"
+	"time"
+)
 
 type Config struct {
 	Stages []Stage
@@ -21,10 +24,29 @@ type Stage struct {
 }
 
 type Query struct {
-	QueryName   string  `yaml:"query"` // used as a part of metric name
-	SQL         string  // SQL itself
-	Update      bool    // This query is DB update
-	Probability float32 // 0 - never, 1 - each time, ignored for RunOnce
+	QueryName   string   `yaml:"query"` // used as a part of metric name
+	SQL         Template // SQL itself
+	Update      bool     // This query is DB update
+	Probability float32  // 0 - never, 1 - each time, ignored for RunOnce
 }
 
 var globalConfig Config
+
+type Template template.Template
+
+func (t *Template) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	var strVal string
+
+	err := unmarshal(&strVal)
+	if err != nil {
+		return err
+	}
+
+	newT, err := template.New(strVal).Parse(strVal)
+	if err != nil {
+		return err
+	}
+
+	*t = Template(*newT)
+	return nil
+}
