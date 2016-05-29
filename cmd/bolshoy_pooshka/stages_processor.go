@@ -24,7 +24,7 @@ func processStages() {
 			query.Probability = query.Probability / totalProb
 		}
 
-		if stage.Duration != 0 {
+		if stage.Duration != 0 && len(stage.Repeat) > 0 {
 			var wg sync.WaitGroup
 			if stage.Concurrency == 0 {
 				stage.Concurrency = 1
