@@ -53,18 +53,18 @@ func processRunOnceQueries(stage *Stage, data interface{}) {
 }
 
 func worker(wg *sync.WaitGroup, stage *Stage) {
-	stopFlag := 0
-	go func() {
-		time.Sleep(stage.Duration)
-		log.Printf("Setting the stopflag")
-		stopFlag = 1 // No locking because this operation should be practically atomic enough
-	}()
-	for {
+	stopFlag := false
+	watchdog := time.AfterFunc(
+		stage.Duration,
+		func() {
+			log.Printf("Setting the stopflag")
+			stopFlag = true
+		},
+	)
+	_ = watchdog
+	for !stopFlag {
 		data := &QueryData{}
 		runSingleRepeatableQuery(stage, data.Init())
-		if stopFlag != 0 {
-			break
-		}
 	}
 	wg.Done()
 }
