@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"bytes"
 	"fmt"
 	"math/rand"
 	"os"
@@ -62,15 +61,12 @@ func processStages() {
 	}
 }
 
-func processRunOnceQueries(stage *Stage, data interface{}) {
-	var buf bytes.Buffer
-	for i, query := range stage.RunOnce {
-		buf.Reset()
-		err := query.SQL.Execute(&buf, data)
+func processRunOnceQueries(stage *Stage, data *QueryData) {
+	for _, query := range stage.RunOnce {
+		err := callTheQuery(query.SQL, data, query.Params)
 		if err != nil {
 			panic(err)
 		}
-		log.Printf("Executing a run-once query #%d: %s", i, buf.String())
 	}
 }
 
@@ -82,19 +78,27 @@ func worker(wg *sync.WaitGroup, stopFlag *int32, stage *Stage) {
 	wg.Done()
 }
 
-func runSingleRepeatableQuery(stage *Stage, data interface{}) {
+func runSingleRepeatableQuery(stage *Stage, data *QueryData) {
 	probability := rand.Float32()
-	var buf bytes.Buffer
 
-	for i, query := range stage.Repeat {
+	for _, query := range stage.Repeat {
 		if query.Probability > probability {
-			err := query.SQL.Execute(&buf, data)
+			err := callTheQuery(query.SQL, data, query.Params)
 			if err != nil {
 				panic(err)
 			}
-			log.Printf("Executing a repeatable query #%d: %s", i, buf.String())
 			return
 		}
 	}
 	time.Sleep(100 * time.Millisecond)
+}
+
+func callTheQuery(query string, data *QueryData, paramsNames []string) error {
+	params := make([]interface{}, 0, len(paramsNames))
+	for _, paramName := range paramsNames {
+		params = append(params, getFieldByName(data, paramName))
+	}
+	log.Printf("Executing a repeatable query: %s (%q) (%#+v)", query, paramsNames, params)
+
+	return nil
 }

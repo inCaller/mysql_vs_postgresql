@@ -29,7 +29,10 @@ stages:
     update: false
     probability: 1
   - query: simpleInsert
-    sql: INSERT INTO table1('name', 'value') VALUES({{ .Rand1 }}, {{ .Rand2 }})
+    sql: INSERT INTO table1('name', 'value') VALUES(?, ?)
+    params:
+      - Rand1
+      - Rand2
     update: true
     probability: 0.9
   pause: false
