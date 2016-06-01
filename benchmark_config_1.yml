@@ -1,0 +1,24 @@
+dbdriver: mysql
+datasource: testuser:Rewghikpatgiwy@/mysql_vs_pgsql
+stages:
+- stage: initialStageSubstage1
+  rps: 100
+  concurrency: 20
+  duration: 600s
+  runonce: []
+  repeat:
+  - scenario: populateTheDB
+    queries:
+    - query: simpleInsertUser
+      sql: INSERT INTO users(user_name) VALUES(?)
+      params:
+        - param: UserName
+          type: string
+          generator: RandUUID
+      update: true
+    probability: 1
+#  - query: simpleSelect2
+#    sql: SELECT 1 FROM DUAL
+#    update: false
+#    probability: 1
+  pause: false
