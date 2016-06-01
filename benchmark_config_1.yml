@@ -41,16 +41,36 @@ stages:
           generator: RandToFirstQueryCallCounter
       update: true
       randrepeat: 1024
-    probability: 1
+    probability: 0.5
+  - scenario: ReadFromTheDB
+    queries:
+    - query: simpleSelectMessages
+      sql: select * from messages where user_id in (select friend_id from friends where user_id = ?) # order by ctime # limit 100
+      params:
+        - param: UserId
+          type: int
+          generator: RandToFirstQueryCallCounter
+        - param: CTime
+          type: timestamp
+          generator: Now
+        - param: Message
+          type: string
+          generator: Rand4KText
+      update: false
+    probability: 0.5
   pause: false
 - stage: StopForReconfig
   pause: true
+<<<<<<< 6e73185157fbad7b1ae97e176d696b9534a149f1
 - stage: OrderAdded
   rps: 0
   concurrency: 128
   duration: 1000m
   runonce: []
   repeat:
+=======
+- stage: LessNewUsers
+>>>>>>> new stages
   - scenario: populateTheDB
     queries:
     - query: simpleInsertUser
@@ -60,6 +80,20 @@ stages:
           type: string
           generator: RandUUID
       update: true
+    - query: simpleInsertUserFriend
+      sql: INSERT IGNORE INTO friends(user_id, friend_id) VALUES(?,?)
+      params:
+        - param: UserId
+          type: int
+          generator: RandToFirstQueryCallCounter
+        - param: FriendId
+          type: int
+          generator: RandToFirstQueryCallCounter
+      update: true
+      randrepeat: 1024
+    probability: 0.01
+  - scenario: newMessage
+    queries:
     - query: simpleInsertUserMessage
       sql: INSERT INTO messages(user_id, ctime, message) VALUES(?,?,?)
       params:
@@ -73,17 +107,21 @@ stages:
           type: string
           generator: Rand4KText
       update: true
-      randrepeat: 10
-    - query: simpleInsertUserFriend
-      sql: INSERT IGNORE INTO friends(user_id, friend_id) VALUES(?,?)
+    probability: 0.4
+  - scenario: ReadFromTheDB
+    queries:
+    - query: simpleSelectMessages
+      sql: select * from messages where user_id in (select friend_id from friends where user_id = ?) # order by ctime # limit 100
       params:
         - param: UserId
           type: int
           generator: RandToFirstQueryCallCounter
-        - param: FriendId
-          type: int
-          generator: RandToFirstQueryCallCounter
-      update: true
-      randrepeat: 1024
-    probability: 1
+        - param: CTime
+          type: timestamp
+          generator: Now
+        - param: Message
+          type: string
+          generator: Rand4KText
+      update: false
+    probability: 0.5
   pause: false
