@@ -2,7 +2,7 @@ stages:
 - stage: initialStageSubstage1
   rps: 100
   concurrency: 10
-  duration: 20s
+  duration: 5s
   runonce:
   - query: simpleSelect
     sql: SELECT 1 FROM DUAL
@@ -17,7 +17,7 @@ stages:
 - stage: initialStageSubstage2
   rps: 300
   concurrency: 10
-  duration: 1m0s
+  duration: 10s
   runonce:
   - query: simpleSelect
     sql: SELECT 1 FROM DUAL

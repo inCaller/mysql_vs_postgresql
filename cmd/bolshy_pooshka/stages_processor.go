@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"math/rand"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
@@ -25,6 +26,16 @@ func processStages() {
 		}
 
 		if stage.Duration != 0 && len(stage.Repeat) > 0 {
+			stopFlag := int32(1)
+			watchdog := time.AfterFunc(
+				stage.Duration,
+				func() {
+					log.Printf("Setting the stopflag")
+					atomic.StoreInt32(&stopFlag, 0)
+				},
+			)
+			_ = watchdog
+
 			var wg sync.WaitGroup
 			if stage.Concurrency == 0 {
 				stage.Concurrency = 1
@@ -32,7 +43,7 @@ func processStages() {
 			log.Printf("Concurrency: %d", stage.Concurrency)
 			wg.Add(stage.Concurrency)
 			for ri := 0; ri < stage.Concurrency; ri++ {
-				go worker(&wg, &stage)
+				go worker(&wg, &stopFlag, &stage)
 			}
 			wg.Wait()
 		}
@@ -52,17 +63,8 @@ func processRunOnceQueries(stage *Stage, data interface{}) {
 	}
 }
 
-func worker(wg *sync.WaitGroup, stage *Stage) {
-	stopFlag := false
-	watchdog := time.AfterFunc(
-		stage.Duration,
-		func() {
-			log.Printf("Setting the stopflag")
-			stopFlag = true
-		},
-	)
-	_ = watchdog
-	for !stopFlag {
+func worker(wg *sync.WaitGroup, stopFlag *int32, stage *Stage) {
+	for atomic.LoadInt32(stopFlag) > 0 {
 		data := &QueryData{}
 		runSingleRepeatableQuery(stage, data.Init())
 	}
@@ -74,7 +76,6 @@ func runSingleRepeatableQuery(stage *Stage, data interface{}) {
 	var buf bytes.Buffer
 
 	for i, query := range stage.Repeat {
-		log.Printf("Examining a repeatable query #%d: %f %f %s", i, probability, query.Probability, query.SQL.Name())
 		if query.Probability > probability {
 			err := query.SQL.Execute(&buf, data)
 			if err != nil {
