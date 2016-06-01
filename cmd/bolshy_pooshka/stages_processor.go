@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"database/sql"
 	"fmt"
+	"github.com/satori/go.uuid"
 	"math/rand"
 	"os"
 	"sync"
@@ -104,10 +105,25 @@ func runScenario(db *sql.DB, scenario *Scenario, data *QueryData) error {
 	return nil
 }
 
+func generateParam(paramDescriptor *Param) interface{} {
+	switch paramDescriptor.Type {
+	case "string":
+		switch paramDescriptor.Generator {
+		case "RandUUID":
+			return uuid.NewV4().String()
+		default:
+			panic("Unknown generator specified!")
+		}
+	default:
+		panic("Unknown parameter type specified!")
+	}
+}
+
 func callTheQuery(db *sql.DB, update bool, query string, data *QueryData, query_params []*Param) error {
 	params := make([]interface{}, 0, len(query_params))
 	for _, query_param := range query_params {
-		params = append(params, getFieldByName(data, query_param))
+		//		params = append(params, getFieldByName(data, query_param))
+		params = append(params, generateParam(query_param))
 	}
 	log.Printf("Executing a repeatable query: %s (%q) (%#+v)", query, query_params, params)
 
