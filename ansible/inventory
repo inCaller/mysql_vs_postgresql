@@ -1,0 +1,5 @@
+[postgresql-master]
+large03
+
+[postgresql-slave]
+large04
