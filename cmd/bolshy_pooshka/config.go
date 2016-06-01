@@ -37,10 +37,11 @@ type Scenario struct {
 }
 
 type Query struct {
-	QueryName string   `yaml:"query"` // used as a part of metric name
-	SQL       string   // SQL itself
-	Params    []*Param // Parameters for query placeholders
-	Update    bool     // This query is DB update
+	QueryName  string   `yaml:"query"` // used as a part of metric name
+	SQL        string   // SQL itself
+	Params     []*Param // Parameters for query placeholders
+	Update     bool     // This query is DB update
+	RandRepeat int      // Repeat randomly when used in a scenario, ignore otherwise
 }
 
 type Param struct {

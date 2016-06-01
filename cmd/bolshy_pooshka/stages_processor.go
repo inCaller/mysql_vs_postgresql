@@ -104,9 +104,18 @@ func runSingleRepeatableScenario(db *sql.DB, stage *Stage, data *QueryData) {
 
 func runScenario(db *sql.DB, scenario *Scenario, data *QueryData) error {
 	for _, query := range scenario.Queries {
-		err := callTheQuery(db, query, data, query.Params)
-		if err != nil {
-			return err
+		numTries := int64(1)
+		if query.RandRepeat > 0 {
+			numTries = rand.Int63n(int64(query.RandRepeat))
+			if numTries == 0 {
+				numTries++
+			}
+		}
+		for i := int64(0); i < numTries; i++ {
+			err := callTheQuery(db, query, data, query.Params)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
