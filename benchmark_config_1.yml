@@ -4,7 +4,7 @@ stages:
 - stage: JustStarted
   rps: 0
   concurrency: 128
-  duration: 100d
+  duration: 1000m
   runonce: []
   repeat:
   - scenario: populateTheDB
@@ -48,7 +48,7 @@ stages:
 - stage: OrderAdded
   rps: 0
   concurrency: 128
-  duration: 100d
+  duration: 1000m
   runonce: []
   repeat:
   - scenario: populateTheDB
