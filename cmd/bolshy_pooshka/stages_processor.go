@@ -1,15 +1,15 @@
 package main
 
 import (
-	"bufio"
 	"database/sql"
 	"fmt"
-	"github.com/satori/go.uuid"
 	"math/rand"
 	"os"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/satori/go.uuid"
 
 	log "github.com/Sirupsen/logrus"
 )
@@ -22,7 +22,7 @@ func init() {
 	callCounter = 0
 }
 
-func processStages(db *sql.DB) {
+func processStages(db *sql.DB, stdIn chan string) {
 	for i, stage := range globalConfig.Stages {
 		log.Printf("Started processing stage #%d, %s", i, stage.StageName)
 		data := &QueryData{}
@@ -48,10 +48,18 @@ func processStages(db *sql.DB) {
 			)
 			_ = watchdog
 
+			go func() {
+
+			}()
+
 			var wg sync.WaitGroup
 			if stage.Concurrency == 0 {
 				stage.Concurrency = 1
 			}
+
+			wg.Add(1)
+			go interrupter(&wg, &stopFlag, stdIn)
+
 			log.Printf("Concurrency: %d", stage.Concurrency)
 			wg.Add(stage.Concurrency)
 			for ri := 0; ri < stage.Concurrency; ri++ {
@@ -61,14 +69,30 @@ func processStages(db *sql.DB) {
 		}
 		log.Printf("Stage finished!")
 		if stage.Pause {
-			contStr := " "
-			reader := bufio.NewReader(os.Stdin)
-			for contStr[:1] != "y" {
-				fmt.Print("Continue? ")
-				contStr, _ = reader.ReadString('\n')
+			for {
+				fmt.Print(`Enter "y\\n" to continue `)
+				contStr := <-stdIn
+				if contStr[:1] == "y" {
+					break
+				}
 			}
 		}
 	}
+}
+
+func interrupter(wg *sync.WaitGroup, stopFlag *int32, stdIn chan string) {
+	fmt.Println(`Enter "n\\n" to interrupt`)
+	for atomic.LoadInt32(stopFlag) > 0 {
+		select {
+		case str := <-stdIn:
+			if str[:1] == "n" {
+				atomic.StoreInt32(stopFlag, 0)
+				break
+			}
+		}
+		time.Sleep(time.Millisecond)
+	}
+	wg.Done()
 }
 
 func processRunOnceQueries(db *sql.DB, stage *Stage, data *QueryData) {

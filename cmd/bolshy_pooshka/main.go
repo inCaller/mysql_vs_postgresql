@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"database/sql"
 	"fmt"
 	"io/ioutil"
@@ -49,7 +50,16 @@ func main() {
 		panic(err)
 	}
 
-	go processStages(db)
+	stdIn := make(chan string)
+	go func() {
+		reader := bufio.NewReader(os.Stdin)
+		for {
+			str, _ := reader.ReadString('\n')
+			stdIn <- str
+		}
+	}()
+
+	go processStages(db, stdIn)
 
 	err = http.ListenAndServe(fmt.Sprintf("%s:%d", "0.0.0.0", 8084), nil)
 	if err != nil {
