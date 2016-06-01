@@ -187,13 +187,16 @@ func callTheQuery(db *sql.DB, query *Query, data *QueryData, query_params []*Par
 		params = append(params, generateParam(query_param))
 	}
 
+	sTime := time.Now()
 	if query.Update {
 		_, err := db.Exec(query.SQL, params...)
+		SQLQueriesTimes.WithLabelValues(hostname, query.QueryName).Observe(float64(time.Since(sTime)) / float64(time.Microsecond))
 		if err != nil {
 			panic(err)
 		}
 	} else {
 		rows, err := db.Query(query.SQL, params...)
+		SQLQueriesTimes.WithLabelValues(hostname, query.QueryName).Observe(float64(time.Since(sTime)) / float64(time.Microsecond))
 		if err != nil {
 			panic(err)
 		}
@@ -210,6 +213,7 @@ func callTheQuery(db *sql.DB, query *Query, data *QueryData, query_params []*Par
 			}
 			_ = rc.Get()
 		}
+		SelectQueriesTimes.WithLabelValues(hostname, query.QueryName).Observe(float64(time.Since(sTime)) / float64(time.Microsecond))
 	}
 	NumSQLQueries.WithLabelValues(hostname, query.QueryName).Inc()
 	// TODO
