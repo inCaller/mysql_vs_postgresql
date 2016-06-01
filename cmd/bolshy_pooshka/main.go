@@ -45,6 +45,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	db.SetMaxOpenConns(128)
 	err = db.Ping()
 	if err != nil {
 		panic(err)
