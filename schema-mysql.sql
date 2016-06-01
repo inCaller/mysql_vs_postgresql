@@ -16,6 +16,7 @@ CREATE TABLE mysql_vs_pgsql.friends (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE INDEX friends_user_id   ON mysql_vs_pgsql.friends (user_id);
+CREATE UNIQUE INDEX friends_user_id_friend_id ON mysql_vs_pgsql.friends (user_id, friend_id);
 -- CREATE INDEX friends_friend_id ON mysql_vs_pgsql.friends (friend_id);
 
 CREATE TABLE mysql_vs_pgsql.messages (

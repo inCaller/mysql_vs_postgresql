@@ -30,5 +30,16 @@ stages:
           generator: Rand4KText
       update: true
       randrepeat: 10
+    - query: simpleInsertUserFriend
+      sql: INSERT IGNORE INTO friends(user_id, friend_id) VALUES(?,?)
+      params:
+        - param: UserId
+          type: int
+          generator: RandToFirstQueryCallCounter
+        - param: FriendId
+          type: int
+          generator: RandToFirstQueryCallCounter
+      update: true
+      randrepeat: 1024
     probability: 1
   pause: false
