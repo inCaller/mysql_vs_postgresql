@@ -14,6 +14,12 @@ import (
 	log "github.com/Sirupsen/logrus"
 )
 
+var hostname string
+
+func init() {
+	hostname, _ = os.Hostname()
+}
+
 func processStages(db *sql.DB) {
 	for i, stage := range globalConfig.Stages {
 		log.Printf("Started processing stage #%d, %s", i, stage.StageName)
@@ -65,7 +71,7 @@ func processStages(db *sql.DB) {
 
 func processRunOnceQueries(db *sql.DB, stage *Stage, data *QueryData) {
 	for _, query := range stage.RunOnce {
-		err := callTheQuery(db, query.Update, query.SQL, data, query.Params)
+		err := callTheQuery(db, query, data, query.Params)
 		if err != nil {
 			panic(err)
 		}
@@ -96,7 +102,7 @@ func runSingleRepeatableScenario(db *sql.DB, stage *Stage, data *QueryData) {
 
 func runScenario(db *sql.DB, scenario *Scenario, data *QueryData) error {
 	for _, query := range scenario.Queries {
-		err := callTheQuery(db, query.Update, query.SQL, data, query.Params)
+		err := callTheQuery(db, query, data, query.Params)
 		if err != nil {
 			return err
 		}
@@ -119,21 +125,20 @@ func generateParam(paramDescriptor *Param) interface{} {
 	}
 }
 
-func callTheQuery(db *sql.DB, update bool, query string, data *QueryData, query_params []*Param) error {
+func callTheQuery(db *sql.DB, query *Query, data *QueryData, query_params []*Param) error {
 	params := make([]interface{}, 0, len(query_params))
 	for _, query_param := range query_params {
 		//		params = append(params, getFieldByName(data, query_param))
 		params = append(params, generateParam(query_param))
 	}
-	log.Printf("Executing a repeatable query: %s (%q) (%#+v)", query, query_params, params)
 
-	if update {
-		_, err := db.Exec(query, params...)
+	if query.Update {
+		_, err := db.Exec(query.SQL, params...)
 		if err != nil {
 			panic(err)
 		}
 	} else {
-		rows, err := db.Query(query, params...)
+		rows, err := db.Query(query.SQL, params...)
 		if err != nil {
 			panic(err)
 		}
@@ -151,6 +156,7 @@ func callTheQuery(db *sql.DB, update bool, query string, data *QueryData, query_
 			_ = rc.Get()
 		}
 	}
+	NumSQLQueries.WithLabelValues(hostname, query.QueryName).Inc()
 
 	return nil
 }
