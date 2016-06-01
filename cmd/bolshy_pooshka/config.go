@@ -2,8 +2,11 @@ package main
 
 import (
 	"math/rand"
+	"sync/atomic"
 	"text/template"
 	"time"
+
+	"github.com/satori/go.uuid"
 )
 
 type Config struct {
@@ -59,12 +62,18 @@ func (t *Template) UnmarshalYAML(unmarshal func(interface{}) error) error {
 }
 
 type QueryData struct {
-	Rand1 int64
-	Rand2 int64
+	Rand1    int64
+	Rand2    int64
+	UserName string
+	Inc1     int64
 }
+
+var inc1 = int64(0)
 
 func (d *QueryData) Init() *QueryData {
 	d.Rand1 = rand.Int63()
 	d.Rand2 = rand.Int63()
+	d.UserName = uuid.NewV4().String()
+	d.Inc1 = atomic.AddInt64(&inc1, 1)
 	return d
 }
