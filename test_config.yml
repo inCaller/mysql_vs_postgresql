@@ -37,8 +37,12 @@ stages:
     - query: simpleInsert
       sql: INSERT INTO table1('name', 'value') VALUES(?, ?)
       params:
-        - Rand1
-        - Rand2
+        - param: UserName
+          type: string
+          generator: RandString
+        - param: Value
+          type: string
+          generator: RandUUID
       update: true
     probability: 0.9
   pause: false

@@ -2,6 +2,6 @@ package main
 
 import "reflect"
 
-func getFieldByName(data *QueryData, fieldName string) interface{} {
-	return reflect.ValueOf(*data).FieldByName(fieldName).Interface()
+func getFieldByName(data *QueryData, query_param *Param) interface{} {
+	return reflect.ValueOf(*data).FieldByName(query_param.ParamName).Interface()
 }

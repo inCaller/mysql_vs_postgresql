@@ -39,8 +39,14 @@ type Scenario struct {
 type Query struct {
 	QueryName string   `yaml:"query"` // used as a part of metric name
 	SQL       string   // SQL itself
-	Params    []string // Parameters for query placeholders
+	Params    []*Param // Parameters for query placeholders
 	Update    bool     // This query is DB update
+}
+
+type Param struct {
+	ParamName string `yaml:"param"`
+	Type      string
+	Generator string
 }
 
 var globalConfig Config

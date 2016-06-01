@@ -104,12 +104,12 @@ func runScenario(db *sql.DB, scenario *Scenario, data *QueryData) error {
 	return nil
 }
 
-func callTheQuery(db *sql.DB, update bool, query string, data *QueryData, paramsNames []string) error {
-	params := make([]interface{}, 0, len(paramsNames))
-	for _, paramName := range paramsNames {
-		params = append(params, getFieldByName(data, paramName))
+func callTheQuery(db *sql.DB, update bool, query string, data *QueryData, query_params []*Param) error {
+	params := make([]interface{}, 0, len(query_params))
+	for _, query_param := range query_params {
+		params = append(params, getFieldByName(data, query_param))
 	}
-	log.Printf("Executing a repeatable query: %s (%q) (%#+v)", query, paramsNames, params)
+	log.Printf("Executing a repeatable query: %s (%q) (%#+v)", query, query_params, params)
 
 	if update {
 		_, err := db.Exec(query, params...)
