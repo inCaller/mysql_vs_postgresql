@@ -1,0 +1,89 @@
+dbdriver: postgres
+datasource: "host=large03 dbname=mysql_vs_pgsql user=testuser password=Rewghikpatgiwy"
+stages:
+- stage: JustStarted
+  rps: 0
+  concurrency: 128
+  duration: 1000m
+  runonce: []
+  repeat:
+  - scenario: populateTheDB
+    queries:
+    - query: simpleInsertUser
+      sql: INSERT INTO users(user_name) VALUES($1)
+      params:
+        - param: UserName
+          type: string
+          generator: RandUUID
+      update: true
+    - query: simpleInsertUserMessage
+      sql: INSERT INTO messages(user_id, ctime, message) VALUES($1,$2,$3)
+      params:
+        - param: UserId
+          type: int
+          generator: RandToFirstQueryCallCounter
+        - param: CTime
+          type: timestamp
+          generator: Now
+        - param: Message
+          type: string
+          generator: Rand4KText
+      update: true
+      randrepeat: 10
+    - query: simpleInsertUserFriend
+      sql: INSERT INTO friends(user_id, friend_id) VALUES($1,$2) ON CONFLICT DO NOTHING
+      params:
+        - param: UserId
+          type: int
+          generator: RandToFirstQueryCallCounter
+        - param: FriendId
+          type: int
+          generator: RandToFirstQueryCallCounter
+      update: true
+      randrepeat: 1024
+    probability: 1
+  pause: false
+- stage: StopForReconfig
+  pause: true
+- stage: OrderAdded
+  rps: 0
+  concurrency: 128
+  duration: 1000m
+  runonce: []
+  repeat:
+  - scenario: populateTheDB
+    queries:
+    - query: simpleInsertUser
+      sql: INSERT INTO users(user_name) VALUES($1)
+      params:
+        - param: UserName
+          type: string
+          generator: RandUUID
+      update: true
+    - query: simpleInsertUserMessage
+      sql: INSERT INTO messages(user_id, ctime, message) VALUES($1,$2,$3)
+      params:
+        - param: UserId
+          type: int
+          generator: RandToFirstQueryCallCounter
+        - param: CTime
+          type: timestamp
+          generator: Now
+        - param: Message
+          type: string
+          generator: Rand4KText
+      update: true
+      randrepeat: 10
+    - query: simpleInsertUserFriend
+      sql: INSERT IGNORE INTO friends(user_id, friend_id) VALUES($1,$2)
+      params:
+        - param: UserId
+          type: int
+          generator: RandToFirstQueryCallCounter
+        - param: FriendId
+          type: int
+          generator: RandToFirstQueryCallCounter
+      update: true
+      randrepeat: 1024
+    probability: 1
+  pause: false
