@@ -1,3 +1,5 @@
+dbdriver: mysql # mysql or postgres
+datasource: /test # [username[:password]@][protocol[(address)]]/dbname[?param1=value1&...&paramN=valueN]
 stages:
 - stage: initialStageSubstage1
   rps: 100

@@ -1,16 +1,23 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
-	log "github.com/Sirupsen/logrus"
-	"github.com/prometheus/client_golang/prometheus"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"net/http"
 	"sync"
+
+	log "github.com/Sirupsen/logrus"
+	"github.com/go-sql-driver/mysql"
+	"github.com/lib/pq"
+	"github.com/prometheus/client_golang/prometheus"
+	"gopkg.in/yaml.v2"
 )
 
 func main() {
+	_ = mysql.Config{}     // just to satisfy a bloody goimports
+	_ = pq.ErrNotSupported // just to satisfy a bloody goimports
+
 	log.Infof("Starting")
 	var wg sync.WaitGroup
 
@@ -28,7 +35,16 @@ func main() {
 	log.Infof("YAML: %v", string(test))
 	http.Handle("/metrics", prometheus.Handler())
 
-	go processStages()
+	db, err := sql.Open(globalConfig.DbDriver, globalConfig.DataSource)
+	if err != nil {
+		panic(err)
+	}
+	err = db.Ping()
+	if err != nil {
+		panic(err)
+	}
+
+	go processStages(db)
 
 	err = http.ListenAndServe(fmt.Sprintf("%s:%d", "0.0.0.0", 8084), nil)
 	if err != nil {

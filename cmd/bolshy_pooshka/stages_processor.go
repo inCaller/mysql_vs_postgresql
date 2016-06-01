@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"database/sql"
 	"fmt"
 	"math/rand"
 	"os"
@@ -12,11 +13,11 @@ import (
 	log "github.com/Sirupsen/logrus"
 )
 
-func processStages() {
+func processStages(db *sql.DB) {
 	for i, stage := range globalConfig.Stages {
 		log.Printf("Started processing stage #%d, %s", i, stage.StageName)
 		data := &QueryData{}
-		processRunOnceQueries(&stage, data.Init())
+		processRunOnceQueries(db, &stage, data.Init())
 
 		totalProb := float32(0)
 		for _, query := range stage.Repeat {
@@ -45,7 +46,7 @@ func processStages() {
 			log.Printf("Concurrency: %d", stage.Concurrency)
 			wg.Add(stage.Concurrency)
 			for ri := 0; ri < stage.Concurrency; ri++ {
-				go worker(&wg, &stopFlag, &stage)
+				go worker(&wg, &stopFlag, db, &stage)
 			}
 			wg.Wait()
 		}
@@ -61,29 +62,29 @@ func processStages() {
 	}
 }
 
-func processRunOnceQueries(stage *Stage, data *QueryData) {
+func processRunOnceQueries(db *sql.DB, stage *Stage, data *QueryData) {
 	for _, query := range stage.RunOnce {
-		err := callTheQuery(query.SQL, data, query.Params)
+		err := callTheQuery(db, query.Update, query.SQL, data, query.Params)
 		if err != nil {
 			panic(err)
 		}
 	}
 }
 
-func worker(wg *sync.WaitGroup, stopFlag *int32, stage *Stage) {
+func worker(wg *sync.WaitGroup, stopFlag *int32, db *sql.DB, stage *Stage) {
 	for atomic.LoadInt32(stopFlag) > 0 {
 		data := &QueryData{}
-		runSingleRepeatableQuery(stage, data.Init())
+		runSingleRepeatableQuery(db, stage, data.Init())
 	}
 	wg.Done()
 }
 
-func runSingleRepeatableQuery(stage *Stage, data *QueryData) {
+func runSingleRepeatableQuery(db *sql.DB, stage *Stage, data *QueryData) {
 	probability := rand.Float32()
 
 	for _, query := range stage.Repeat {
 		if query.Probability > probability {
-			err := callTheQuery(query.SQL, data, query.Params)
+			err := callTheQuery(db, query.Update, query.SQL, data, query.Params)
 			if err != nil {
 				panic(err)
 			}
@@ -93,12 +94,37 @@ func runSingleRepeatableQuery(stage *Stage, data *QueryData) {
 	time.Sleep(100 * time.Millisecond)
 }
 
-func callTheQuery(query string, data *QueryData, paramsNames []string) error {
+func callTheQuery(db *sql.DB, update bool, query string, data *QueryData, paramsNames []string) error {
 	params := make([]interface{}, 0, len(paramsNames))
 	for _, paramName := range paramsNames {
 		params = append(params, getFieldByName(data, paramName))
 	}
 	log.Printf("Executing a repeatable query: %s (%q) (%#+v)", query, paramsNames, params)
+
+	if update {
+		_, err := db.Exec(query, params...)
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		rows, err := db.Query(query, params...)
+		if err != nil {
+			panic(err)
+		}
+		defer rows.Close()
+		columnNames, err := rows.Columns()
+		if err != nil {
+			panic(err)
+		}
+		rc := NewMapStringScan(columnNames)
+		for rows.Next() {
+			err := rc.Update(rows)
+			if err != nil {
+				panic(err)
+			}
+			_ = rc.Get()
+		}
+	}
 
 	return nil
 }

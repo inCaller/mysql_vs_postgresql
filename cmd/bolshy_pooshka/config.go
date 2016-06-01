@@ -7,7 +7,9 @@ import (
 )
 
 type Config struct {
-	Stages []Stage
+	DbDriver   string
+	DataSource string
+	Stages     []Stage
 }
 
 type Stage struct {
