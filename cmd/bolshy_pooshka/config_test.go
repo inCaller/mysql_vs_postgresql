@@ -16,11 +16,10 @@ func TestCreateScenarioNumberOne(t *testing.T) {
 				StageName: "doSomething",
 				RPS:       100,
 				Duration:  time.Second * 20,
-				RunOnce: []Query{
-					Query{
-						QueryName:   "WhoKnows",
-						SQL:         "SELECT 1 FROM DUAL",
-						Probability: 0,
+				RunOnce: []*Query{
+					&Query{
+						QueryName: "WhoKnows",
+						SQL:       "SELECT 1 FROM DUAL",
 					},
 				},
 			},
@@ -28,22 +27,31 @@ func TestCreateScenarioNumberOne(t *testing.T) {
 				StageName: "doSomethingElse",
 				RPS:       300,
 				Duration:  time.Second * 60,
-				RunOnce: []Query{
-					Query{
-						QueryName:   "WhoKnows",
-						SQL:         "SELECT 1 FROM DUAL",
-						Probability: 0,
+				RunOnce: []*Query{
+					&Query{
+						QueryName: "WhoKnows",
+						SQL:       "SELECT 1 FROM DUAL",
 					},
 				},
-				Repeat: []Query{
-					Query{
-						QueryName:   "doSomethingUseful",
-						SQL:         "SELECT 1 FROM DUAL",
+				Repeat: []*Scenario{
+					&Scenario{
+						ScenarioName: "doSomethingUseful",
+						Queries: []*Query{
+							&Query{
+								QueryName: "SelectSomething",
+								SQL:       "SELECT 1 FROM DUAL",
+							},
+						},
 						Probability: 10000,
 					},
-					Query{
-						QueryName:   "doSomethingHarmful",
-						SQL:         "DELETE FROM table1",
+					&Scenario{
+						ScenarioName: "doSomethingHarmful",
+						Queries: []*Query{
+							&Query{
+								QueryName: "DeleteSomething",
+								SQL:       "DELETE FROM table1",
+							},
+						},
 						Probability: 1,
 					},
 				},
@@ -58,7 +66,7 @@ func TestReadScenarioNumberTwo(t *testing.T) {
 	log.Println("Testing scenario #2")
 	var cfg Config
 
-	content, err := ioutil.ReadFile("./test_config.yml")
+	content, err := ioutil.ReadFile("../../test_config.yml")
 	if err != nil {
 		log.Fatalf("Problem reading configuration file: %v", err)
 	}

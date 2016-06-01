@@ -74,24 +74,34 @@ func processRunOnceQueries(db *sql.DB, stage *Stage, data *QueryData) {
 func worker(wg *sync.WaitGroup, stopFlag *int32, db *sql.DB, stage *Stage) {
 	for atomic.LoadInt32(stopFlag) > 0 {
 		data := &QueryData{}
-		runSingleRepeatableQuery(db, stage, data.Init())
+		runSingleRepeatableScenario(db, stage, data.Init())
 	}
 	wg.Done()
 }
 
-func runSingleRepeatableQuery(db *sql.DB, stage *Stage, data *QueryData) {
+func runSingleRepeatableScenario(db *sql.DB, stage *Stage, data *QueryData) {
 	probability := rand.Float32()
 
-	for _, query := range stage.Repeat {
-		if query.Probability > probability {
-			err := callTheQuery(db, query.Update, query.SQL, data, query.Params)
+	for _, scenario := range stage.Repeat {
+		if scenario.Probability > probability {
+			err := runScenario(db, scenario, data)
 			if err != nil {
 				panic(err)
 			}
 			return
 		}
 	}
-	time.Sleep(100 * time.Millisecond)
+}
+
+func runScenario(db *sql.DB, scenario *Scenario, data *QueryData) error {
+	for _, query := range scenario.Queries {
+		err := callTheQuery(db, query.Update, query.SQL, data, query.Params)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func callTheQuery(db *sql.DB, update bool, query string, data *QueryData, paramsNames []string) error {

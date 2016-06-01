@@ -24,18 +24,23 @@ type Stage struct {
 		duration - obvious
 		set a huge duration to run until interrupted
 	*/
-	RunOnce []*Query // executed one by one
-	Repeat  []*Query // executed in parallel according to their probability
-	Pause   bool     // Do not step to the next stage automatically
+	RunOnce []*Query    // executed one by one
+	Repeat  []*Scenario // executed in parallel according to their probability
+	Pause   bool        // Do not step to the next stage automatically
 
 }
 
+type Scenario struct {
+	ScenarioName string   `yaml:"scenario"` // used as a part of metric name
+	Queries      []*Query // Queries, run sequentially
+	Probability  float32  // 0 - never, 1 - each time, ignored for RunOnce
+}
+
 type Query struct {
-	QueryName   string   `yaml:"query"` // used as a part of metric name
-	SQL         string   // SQL itself
-	Params      []string // Parameters for query placeholders
-	Update      bool     // This query is DB update
-	Probability float32  // 0 - never, 1 - each time, ignored for RunOnce
+	QueryName string   `yaml:"query"` // used as a part of metric name
+	SQL       string   // SQL itself
+	Params    []string // Parameters for query placeholders
+	Update    bool     // This query is DB update
 }
 
 var globalConfig Config
