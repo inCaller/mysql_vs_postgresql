@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"sync"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
 	"github.com/prometheus/client_golang/prometheus"
@@ -18,10 +20,13 @@ func main() {
 	_ = mysql.Config{}     // just to satisfy a bloody goimports
 	_ = pq.ErrNotSupported // just to satisfy a bloody goimports
 
+	cmdline.Parse()
+	spew.Fprintf(os.Stderr, "started: %#v\n", cmdline)
+
 	log.Infof("Starting")
 	var wg sync.WaitGroup
 
-	content, err := ioutil.ReadFile("./test_config.yml")
+	content, err := ioutil.ReadFile(*cmdline.Config)
 	if err != nil {
 		log.Fatalf("Problem reading configuration file: %v", err)
 	}
