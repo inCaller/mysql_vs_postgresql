@@ -7,7 +7,7 @@ import "math/rand"
 var txt = MustAsset("book1.txt")
 
 func GetRandText(maxLen int) string {
-	txtLen := rand.Intn(maxLen)
+	txtLen := rand.Intn(maxLen/10*9) + maxLen/10
 	txtPos := rand.Intn(len(txt) - txtLen)
 	return string(txt[txtPos : txtPos+txtLen])
 }

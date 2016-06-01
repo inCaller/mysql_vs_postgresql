@@ -1,10 +1,54 @@
 dbdriver: mysql
 datasource: testuser:Rewghikpatgiwy@/mysql_vs_pgsql
 stages:
-- stage: initialStageSubstage1
-  rps: 100
-  concurrency: 20
-  duration: 600s
+- stage: JustStarted
+  rps: 0
+  concurrency: 128
+  duration: 100d
+  runonce: []
+  repeat:
+  - scenario: populateTheDB
+    queries:
+    - query: simpleInsertUser
+      sql: INSERT INTO users(user_name) VALUES(?)
+      params:
+        - param: UserName
+          type: string
+          generator: RandUUID
+      update: true
+    - query: simpleInsertUserMessage
+      sql: INSERT INTO messages(user_id, ctime, message) VALUES(?,?,?)
+      params:
+        - param: UserId
+          type: int
+          generator: RandToFirstQueryCallCounter
+        - param: CTime
+          type: timestamp
+          generator: Now
+        - param: Message
+          type: string
+          generator: Rand4KText
+      update: true
+      randrepeat: 10
+    - query: simpleInsertUserFriend
+      sql: INSERT IGNORE INTO friends(user_id, friend_id) VALUES(?,?)
+      params:
+        - param: UserId
+          type: int
+          generator: RandToFirstQueryCallCounter
+        - param: FriendId
+          type: int
+          generator: RandToFirstQueryCallCounter
+      update: true
+      randrepeat: 1024
+    probability: 1
+  pause: false
+- stage: StopForReconfig
+  pause: true
+- stage: OrderAdded
+  rps: 0
+  concurrency: 128
+  duration: 100d
   runonce: []
   repeat:
   - scenario: populateTheDB
