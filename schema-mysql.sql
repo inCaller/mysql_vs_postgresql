@@ -27,4 +27,5 @@ CREATE TABLE mysql_vs_pgsql.messages (
 	FOREIGN KEY (user_id)   REFERENCES mysql_vs_pgsql.users (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE INDEX friends_user_id   ON mysql_vs_pgsql.messages (user_id);
+CREATE INDEX messages_user_id   ON mysql_vs_pgsql.messages (user_id);
+CREATE INDEX messages_ctime     ON mysql_vs_pgsql.messages (ctime);
