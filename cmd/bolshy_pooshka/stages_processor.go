@@ -1,8 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
+	"fmt"
 	"math/rand"
+	"os"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -48,6 +51,14 @@ func processStages() {
 			wg.Wait()
 		}
 		log.Printf("Stage finished!")
+		if stage.Pause {
+			contStr := " "
+			reader := bufio.NewReader(os.Stdin)
+			for contStr[:1] != "y" {
+				fmt.Print("Continue? ")
+				contStr, _ = reader.ReadString('\n')
+			}
+		}
 	}
 }
 

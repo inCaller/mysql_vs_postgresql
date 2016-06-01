@@ -13,7 +13,7 @@ stages:
     update: false
     probability: 1
   repeat: []
-  pause: false
+  pause: true
 - stage: initialStageSubstage2
   rps: 300
   concurrency: 10
