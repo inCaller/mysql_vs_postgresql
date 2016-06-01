@@ -1,5 +1,10 @@
 - hosts: all
-  sudo: yes
+  become: yes
   roles:
   - role: etckeeper
   - role: common-utils
+
+- hosts: postgresql-master
+  become: yes
+  roles:
+  - role: postgresql

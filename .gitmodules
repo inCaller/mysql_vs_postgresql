@@ -4,3 +4,6 @@
 [submodule "ansible/roles/common-utils"]
 	path = ansible/roles/common-utils
 	url = https://github.com/gitinsky/ansible-role-common-utils.git
+[submodule "ansible/roles/postgresql"]
+	path = ansible/roles/postgresql
+	url = https://github.com/gitinsky/ansible-role-postgresql.git
