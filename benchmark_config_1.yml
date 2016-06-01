@@ -16,9 +16,19 @@ stages:
           type: string
           generator: RandUUID
       update: true
+    - query: simpleInsertUserMessage
+      sql: INSERT INTO messages(user_id, ctime, message) VALUES(?,?,?)
+      params:
+        - param: UserId
+          type: int
+          generator: RandToFirstQueryCallCounter
+        - param: CTime
+          type: timestamp
+          generator: Now
+        - param: Message
+          type: string
+          generator: Rand4KText
+      update: true
+      randrepeat: 10
     probability: 1
-#  - query: simpleSelect2
-#    sql: SELECT 1 FROM DUAL
-#    update: false
-#    probability: 1
   pause: false
