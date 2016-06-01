@@ -8,3 +8,8 @@
   become: yes
   roles:
   - role: postgresql
+
+- hosts: postgresql-slave
+  become: yes
+  roles:
+  - role: postgresql
