@@ -61,16 +61,13 @@ stages:
   pause: false
 - stage: StopForReconfig
   pause: true
-<<<<<<< 6e73185157fbad7b1ae97e176d696b9534a149f1
 - stage: OrderAdded
   rps: 0
   concurrency: 128
   duration: 1000m
   runonce: []
   repeat:
-=======
 - stage: LessNewUsers
->>>>>>> new stages
   - scenario: populateTheDB
     queries:
     - query: simpleInsertUser
